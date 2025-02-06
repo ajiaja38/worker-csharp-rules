@@ -1,0 +1,10 @@
+﻿{
+  "profiles": {
+    "worker_smarthome_cloud_server": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

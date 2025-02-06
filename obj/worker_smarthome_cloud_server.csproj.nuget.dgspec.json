@@ -1,0 +1,76 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\ajico\\Documents\\Coding\\Backend\\worker_smarthome_cloud_servers\\worker_smarthome_cloud_server.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\ajico\\Documents\\Coding\\Backend\\worker_smarthome_cloud_servers\\worker_smarthome_cloud_server.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\ajico\\Documents\\Coding\\Backend\\worker_smarthome_cloud_servers\\worker_smarthome_cloud_server.csproj",
+        "projectName": "worker_smarthome_cloud_server",
+        "projectPath": "C:\\Users\\ajico\\Documents\\Coding\\Backend\\worker_smarthome_cloud_servers\\worker_smarthome_cloud_server.csproj",
+        "packagesPath": "C:\\Users\\ajico\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\ajico\\Documents\\Coding\\Backend\\worker_smarthome_cloud_servers\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\ajico\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "netcoreapp3.1"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netcoreapp3.1": {
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netcoreapp3.1": {
+          "dependencies": {
+            "Microsoft.Data.Sqlite": {
+              "target": "Package",
+              "version": "[3.1.0, )"
+            },
+            "Microsoft.Extensions.Hosting": {
+              "target": "Package",
+              "version": "[3.1.16, )"
+            },
+            "RabbitMQ.Client": {
+              "target": "Package",
+              "version": "[6.1.0, )"
+            },
+            "System.Configuration.ConfigurationManager": {
+              "target": "Package",
+              "version": "[4.4.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.100\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
