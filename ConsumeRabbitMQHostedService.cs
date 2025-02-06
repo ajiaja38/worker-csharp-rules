@@ -83,21 +83,14 @@ namespace worker_smarthome_cloud_server {
          connectionStringBuilder.DataSource = DBPath;
          var connectionDB = new SqliteConnection(connectionStringBuilder.ConnectionString);
 
-         //just print this message 
-         // _logger.LogInformation($"consumer received {content}");
-
-         //And splite message to Query Parameters
-
          string[] dataParsing = content.Split('#');
          foreach(var datas in dataParsing) {
-            //System.Console.WriteLine($"{datas}>");
             InputGuid = dataParsing[0];
             ValueInput = dataParsing[1];
 
          }
          DateTime now = DateTime.Now;
          String TimeStamp = now.ToString();
-         //_logger.LogInformation($"palyoad received at {TimeStamp}");
          connectionDB.Open();
             var selectCmd = connectionDB.CreateCommand();
             selectCmd.CommandText = "SELECT * FROM Rules  WHERE inputguid=@Guidinput AND inputvalue=@Valueinput";
@@ -135,7 +128,6 @@ namespace worker_smarthome_cloud_server {
 
          using(var transaction = connectionDB.BeginTransaction()) {
             var insertCmd = connectionDB.CreateCommand();
-            //     // _logger.LogInformation($"Try insert data to DB ...");
             insertCmd.CommandText = "insert INTO Log (inputguid,inputname,inputvalue,time)VALUES(@inputguid,@devicename,@valueinput,@timestamp)";
             insertCmd.Parameters.AddWithValue("@inputguid", InputGuid);
             insertCmd.Parameters.AddWithValue("@devicename", DeviceName);
