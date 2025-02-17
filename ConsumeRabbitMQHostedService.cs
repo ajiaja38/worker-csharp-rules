@@ -1,8 +1,15 @@
 ﻿/*************************************************************************************************************************
  *                               DEVELOPMENT BY      : NURMAN HARIYANTO - PT.LSKK & PPTIK                                *
- *                                                VERSION             : 2                                                *
- *                                             TYPE APPLICATION    : WORKER                                              *
+ *                               VERSION             : 2                                                                 *
+ *                               TYPE APPLICATION    : WORKER                                                            *
  * DESCRIPTION         : GET DATA FROM MQTT (OUTPUT DEVICE) CHECK TO DB RULES AND SEND BACK (INPUT DEVICE) IF DATA EXIST *
+ *************************************************************************************************************************/
+
+ /*************************************************************************************************************************
+ *                        UPDATE DEVELOPMENT BY      : M. AJI PERDANA - PT.LSKK & PPTIK, FEBRUARY 2025                   *
+ *                                  VERSION          : 3                                                                 *
+ *                               TYPE APPLICATION    : WORKER                                                            *
+ * DESCRIPTION         : REFACTORING CODE INTO NEW DB STRUCTURE, FIXING ITERATION WHEN INSERT TO LOGS, AND FIXING BUG    *
  *************************************************************************************************************************/
 
 namespace worker_smarthome_cloud_server {
