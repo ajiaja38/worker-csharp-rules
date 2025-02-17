@@ -89,65 +89,67 @@ namespace worker_smarthome_cloud_server {
             ValueInput = dataParsing[1];
 
          }
-         DateTime now = DateTime.Now;
-         String TimeStamp = now.ToString();
+         
+         TimeZoneInfo asia = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+         DateTime now = DateTime.UtcNow;
+         DateTime TimeStamp = TimeZoneInfo.ConvertTimeFromUtc(now, asia);
+
+         Console.WriteLine($"GuidInput: {InputGuid} - ValueInput: {ValueInput} - TimeStamp: {TimeStamp}");
+
          connectionDB.Open();
             var selectCmd = connectionDB.CreateCommand();
-            selectCmd.CommandText = "SELECT * FROM Rules  WHERE inputguid=@Guidinput AND inputvalue=@Valueinput";
+            selectCmd.CommandText = "SELECT * FROM rule_devices  WHERE input_guid=@Guidinput AND input_value=@Valueinput";
             selectCmd.Parameters.AddWithValue("@Guidinput", InputGuid);
             selectCmd.Parameters.AddWithValue("@Valueinput", ValueInput);
             using(var reader = selectCmd.ExecuteReader()) {
                while (reader.Read()) {
-                  OutputGuid = reader.GetString(3);
+                  
+                  // for (int i = 0; i < reader.FieldCount; i++)
+                  // {
+                  //       Console.WriteLine($"Column {i}: {reader.GetValue(i)}");
+                  // }
+                  
+                  OutputGuid = reader.GetString(2);
                   ValueOutput = reader.GetString(4);
 
                   MessageSend = OutputGuid + "#" + ValueOutput;
+                  Console.WriteLine($"MessageSend: {MessageSend}");
 
-                  _channel.BasicPublish(exchange: RMQExc,
-                     routingKey: RMQPubRoutingKey,
+                  var selectRegistrationCmd = connectionDB.CreateCommand();
+                  selectRegistrationCmd.CommandText = "SELECT * FROM registrations WHERE guid=@Guidinput";
+                  selectRegistrationCmd.Parameters.AddWithValue("@Guidinput", InputGuid);
+
+                  using (var reader2 = selectRegistrationCmd.ExecuteReader()) {
+                     while (reader2.Read()) {
+                        DeviceName = reader2.GetString(5);
+                     }
+                  }
+
+                  using (var transaction = connectionDB.BeginTransaction()) {
+                     var insertCmd = connectionDB.CreateCommand();
+                     insertCmd.CommandText = "insert INTO logs (input_guid,input_name,input_value,output_guid,output_value,time)VALUES(@inputguid,@devicename,@valueinput,@outputguid,@outputvalue,@timestamp)";
+                     insertCmd.Parameters.AddWithValue("@inputguid", InputGuid);
+                     insertCmd.Parameters.AddWithValue("@devicename", DeviceName);
+                     insertCmd.Parameters.AddWithValue("@valueinput", ValueInput);
+                     insertCmd.Parameters.AddWithValue("@outputguid", OutputGuid);
+                     insertCmd.Parameters.AddWithValue("@outputvalue", ValueOutput);
+                     insertCmd.Parameters.AddWithValue("@timestamp", TimeStamp);
+                     insertCmd.ExecuteNonQuery();
+
+                     transaction.Commit();
+
+                     _logger.LogInformation($"success insert data to DB");
+                  }
+
+                  _channel.BasicPublish(exchange: "amq.topic",
+                     routingKey: "Aktuator",
                      basicProperties: null,
                      body: Encoding.UTF8.GetBytes(MessageSend)
                   );
-
                }
-
             }
-
-         var selectRegistrationCmd = connectionDB.CreateCommand();
-            selectRegistrationCmd.CommandText = "SELECT * FROM Registration  WHERE guid=@Guidinput";
-            selectRegistrationCmd.Parameters.AddWithValue("@Guidinput", InputGuid);
-            using(var reader = selectRegistrationCmd.ExecuteReader()) {
-               while (reader.Read()) {
-                  DeviceName = reader.GetString(5);
-               }
-
-            }
-
-
-      
-
-         using(var transaction = connectionDB.BeginTransaction()) {
-            var insertCmd = connectionDB.CreateCommand();
-            insertCmd.CommandText = "insert INTO Log (inputguid,inputname,inputvalue,time)VALUES(@inputguid,@devicename,@valueinput,@timestamp)";
-            insertCmd.Parameters.AddWithValue("@inputguid", InputGuid);
-            insertCmd.Parameters.AddWithValue("@devicename", DeviceName);
-            insertCmd.Parameters.AddWithValue("@valueinput", ValueInput);
-            insertCmd.Parameters.AddWithValue("@timestamp", TimeStamp);
-            //     //  _logger.LogInformation($"ESuccess Get Data from payload..");
-            insertCmd.ExecuteNonQuery();
-            //     //  _logger.LogInformation($"Execute Command Insert..");
-            transaction.Commit();
-            // }
-            // _logger.LogInformation($"success insert data to DB");
-            // connectionDB.Close();
-         }
-
-         
-
-       
          connectionDB.Close();
-         // _logger.LogInformation("Sucess Send Data");
-
+         _logger.LogInformation("Sucess Send Data");
       }
 
       private void RabbitMQ_ConnectionShutdown(object sender, ShutdownEventArgs e) {
