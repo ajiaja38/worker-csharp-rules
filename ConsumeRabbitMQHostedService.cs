@@ -94,7 +94,7 @@ namespace worker_smarthome_cloud_server {
          DateTime now = DateTime.UtcNow;
          DateTime TimeStamp = TimeZoneInfo.ConvertTimeFromUtc(now, asia);
 
-         Console.WriteLine($"GuidInput: {InputGuid} - ValueInput: {ValueInput} - TimeStamp: {TimeStamp}");
+         _logger.LogInformation($"GuidInput: {InputGuid} - ValueInput: {ValueInput} - TimeStamp: {TimeStamp}");
 
          connectionDB.Open();
             var selectCmd = connectionDB.CreateCommand();
@@ -113,7 +113,7 @@ namespace worker_smarthome_cloud_server {
                   ValueOutput = reader.GetString(4);
 
                   MessageSend = OutputGuid + "#" + ValueOutput;
-                  Console.WriteLine($"MessageSend: {MessageSend}");
+                  _logger.LogInformation($"MessageSend: {MessageSend}");
 
                   var selectRegistrationCmd = connectionDB.CreateCommand();
                   selectRegistrationCmd.CommandText = "SELECT * FROM registrations WHERE guid=@Guidinput";
@@ -141,7 +141,8 @@ namespace worker_smarthome_cloud_server {
                      _logger.LogInformation($"success insert data to DB");
                   }
 
-                  _channel.BasicPublish(exchange: "amq.topic",
+                  _channel.BasicPublish(
+                     exchange: "amq.topic",
                      routingKey: "Aktuator",
                      basicProperties: null,
                      body: Encoding.UTF8.GetBytes(MessageSend)
