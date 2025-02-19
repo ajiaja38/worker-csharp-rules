@@ -132,20 +132,62 @@ namespace worker_smarthome_cloud_server {
                      }
                   }
 
-                  using (var transaction = connectionDB.BeginTransaction()) {
-                     var insertCmd = connectionDB.CreateCommand();
-                     insertCmd.CommandText = "insert INTO logs (input_guid,input_name,input_value,output_guid,output_value,time)VALUES(@inputguid,@devicename,@valueinput,@outputguid,@outputvalue,@timestamp)";
-                     insertCmd.Parameters.AddWithValue("@inputguid", InputGuid);
-                     insertCmd.Parameters.AddWithValue("@devicename", DeviceName);
-                     insertCmd.Parameters.AddWithValue("@valueinput", ValueInput);
-                     insertCmd.Parameters.AddWithValue("@outputguid", OutputGuid);
-                     insertCmd.Parameters.AddWithValue("@outputvalue", ValueOutput);
-                     insertCmd.Parameters.AddWithValue("@timestamp", TimeStamp);
-                     insertCmd.ExecuteNonQuery();
+                  using (var transaction = connectionDB.BeginTransaction()) 
+                  {
+                     try 
+                     {
+                        using (var updateStatusDevice = connectionDB.CreateCommand()) 
+                        {
+                           updateStatusDevice.Transaction = transaction;
 
-                     transaction.Commit();
+                           if (ValueInput == "0") 
+                           {
+                              updateStatusDevice.CommandText = @"
+                                 UPDATE registrations SET status=true WHERE guid=@guidInput;
+                                 UPDATE registrations SET status=true WHERE guid=@guidOutput;
+                              ";
+                           } 
+                           else if (ValueInput == "1") 
+                           {
+                              updateStatusDevice.CommandText = @"
+                                 UPDATE registrations SET status=false WHERE guid=@guidInput;
+                                 UPDATE registrations SET status=false WHERE guid=@guidOutput;
+                              ";
+                           }
 
-                     _logger.LogInformation($"success insert data to DB");
+                           updateStatusDevice.Parameters.AddWithValue("@guidInput", InputGuid);
+                           updateStatusDevice.Parameters.AddWithValue("@guidOutput", OutputGuid);
+                           
+                           updateStatusDevice.ExecuteNonQuery();
+                        }
+
+                        using (var insertCmd = connectionDB.CreateCommand()) 
+                        {
+                           insertCmd.Transaction = transaction;
+                           insertCmd.CommandText = @"
+                              INSERT INTO logs (input_guid, input_name, input_value, output_guid, output_value, time)
+                              VALUES (@inputguid, @devicename, @valueinput, @outputguid, @outputvalue, @timestamp);
+                           ";
+
+                           insertCmd.Parameters.AddWithValue("@inputguid", InputGuid);
+                           insertCmd.Parameters.AddWithValue("@devicename", DeviceName);
+                           insertCmd.Parameters.AddWithValue("@valueinput", ValueInput);
+                           insertCmd.Parameters.AddWithValue("@outputguid", OutputGuid);
+                           insertCmd.Parameters.AddWithValue("@outputvalue", ValueOutput);
+                           insertCmd.Parameters.AddWithValue("@timestamp", TimeStamp);
+                           
+                           insertCmd.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();
+
+                        _logger.LogInformation($"Success inserting data to DB ✅");
+                     } 
+                     catch (Exception ex) 
+                     {
+                        transaction.Rollback();
+                        _logger.LogError($"Database transaction failed: {ex.Message} 💥");
+                     }
                   }
 
                   _channel.BasicPublish(
@@ -154,6 +196,7 @@ namespace worker_smarthome_cloud_server {
                      basicProperties: null,
                      body: Encoding.UTF8.GetBytes(MessageSend)
                   );
+
                }
             }
          connectionDB.Close();
