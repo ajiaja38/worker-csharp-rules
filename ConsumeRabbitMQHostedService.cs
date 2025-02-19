@@ -12,7 +12,8 @@
  * DESCRIPTION         : REFACTORING CODE INTO NEW DB STRUCTURE, FIXING ITERATION WHEN INSERT TO LOGS, AND FIXING BUG    *
  *************************************************************************************************************************/
 
-namespace worker_smarthome_cloud_server {
+namespace worker_smarthome_cloud_server
+{
    using System.Configuration;
    using System.Threading;
    using System.Threading.Tasks;
@@ -24,7 +25,8 @@ namespace worker_smarthome_cloud_server {
    using Microsoft.Data.Sqlite;
    using System;
 
-   public class ConsumeRabbitMQHostedService: BackgroundService {
+   public class ConsumeRabbitMQHostedService: BackgroundService
+   {
       private readonly ILogger _logger;
       private IConnection _connection;
       private IModel _channel;
@@ -44,13 +46,14 @@ namespace worker_smarthome_cloud_server {
       private static string MessageSend = "";
       private static string DeviceName = "";
 
-      public ConsumeRabbitMQHostedService(ILoggerFactory loggerFactory) {
-
+      public ConsumeRabbitMQHostedService(ILoggerFactory loggerFactory)
+      {
          this._logger = loggerFactory.CreateLogger < ConsumeRabbitMQHostedService > ();
          InitRabbitMQ();
       }
 
-      private void InitRabbitMQ() {
+      private void InitRabbitMQ()
+      {
 
          var factory = new ConnectionFactory {
             HostName = RMQHost, VirtualHost = RMQVHost, UserName = RMQUsername, Password = RMQPassword
@@ -65,12 +68,14 @@ namespace worker_smarthome_cloud_server {
          _connection.ConnectionShutdown += RabbitMQ_ConnectionShutdown;
       }
 
-      protected override Task ExecuteAsync(CancellationToken stoppingToken) {
+      protected override Task ExecuteAsync(CancellationToken stoppingToken)
+      {
 
          stoppingToken.ThrowIfCancellationRequested();
 
          var consumer = new EventingBasicConsumer(_channel);
-         consumer.Received += (ch, ea) => {
+         consumer.Received += (ch, ea) =>
+         {
             // received message
             var body = ea.Body.ToArray();
             var content = System.Text.Encoding.UTF8.GetString(body);
@@ -85,7 +90,8 @@ namespace worker_smarthome_cloud_server {
          return Task.CompletedTask;
       }
 
-      private void HandleMessageToDB(string content) {
+      private void HandleMessageToDB(string content)
+      {
          var connectionStringBuilder = new SqliteConnectionStringBuilder();
          connectionStringBuilder.DataSource = DBPath;
          var connectionDB = new SqliteConnection(connectionStringBuilder.ConnectionString);
@@ -108,8 +114,10 @@ namespace worker_smarthome_cloud_server {
             selectCmd.CommandText = "SELECT * FROM rule_devices  WHERE input_guid=@Guidinput AND input_value=@Valueinput";
             selectCmd.Parameters.AddWithValue("@Guidinput", InputGuid);
             selectCmd.Parameters.AddWithValue("@Valueinput", ValueInput);
-            using(var reader = selectCmd.ExecuteReader()) {
-               while (reader.Read()) {
+            using(var reader = selectCmd.ExecuteReader())
+            {
+               while (reader.Read())
+               {
                   
                   // for (int i = 0; i < reader.FieldCount; i++)
                   // {
@@ -126,7 +134,8 @@ namespace worker_smarthome_cloud_server {
                   selectRegistrationCmd.CommandText = "SELECT * FROM registrations WHERE guid=@Guidinput";
                   selectRegistrationCmd.Parameters.AddWithValue("@Guidinput", InputGuid);
 
-                  using (var reader2 = selectRegistrationCmd.ExecuteReader()) {
+                  using (var reader2 = selectRegistrationCmd.ExecuteReader())
+                  {
                      while (reader2.Read()) {
                         DeviceName = reader2.GetString(5);
                      }
@@ -203,15 +212,18 @@ namespace worker_smarthome_cloud_server {
          _logger.LogInformation("Sucess Send Data");
       }
 
-      private void RabbitMQ_ConnectionShutdown(object sender, ShutdownEventArgs e) {
+      private void RabbitMQ_ConnectionShutdown(object sender, ShutdownEventArgs e)
+      {
          _logger.LogInformation($"connection shut down {e.ReplyText}");
       }
 
-      private void OnConsumerShutdown(object sender, ShutdownEventArgs e) {
+      private void OnConsumerShutdown(object sender, ShutdownEventArgs e)
+      {
          _logger.LogInformation($"consumer shutdown {e.ReplyText}");
       }
 
-      public override void Dispose() {
+      public override void Dispose()
+      {
          _channel.Close();
          _connection.Close();
          base.Dispose();
