@@ -190,7 +190,7 @@ namespace worker_smarthome_cloud_server
 
                         transaction.Commit();
 
-                        _logger.LogInformation($"Success inserting data to DB ✅");
+                        _logger.LogInformation($"Success inserting data to DB");
                      } 
                      catch (Exception ex) 
                      {
