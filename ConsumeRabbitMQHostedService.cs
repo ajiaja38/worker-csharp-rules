@@ -145,29 +145,30 @@ namespace worker_smarthome_cloud_server
                   {
                      try 
                      {
-                        using (var updateStatusDevice = connectionDB.CreateCommand()) 
+                        using (var updateRegistration = connectionDB.CreateCommand()) 
                         {
-                           updateStatusDevice.Transaction = transaction;
+                           updateRegistration.Transaction = transaction;
 
                            if (ValueInput == "0") 
                            {
-                              updateStatusDevice.CommandText = @"
-                                 UPDATE registrations SET status=true WHERE guid=@guidInput;
-                                 UPDATE registrations SET status=true WHERE guid=@guidOutput;
+                              updateRegistration.CommandText = @"
+                                 UPDATE registrations SET status=true, updated_at=@timestamp WHERE guid=@guidInput;
+                                 UPDATE registrations SET status=true, updated_at=@timestamp WHERE guid=@guidOutput;
                               ";
                            } 
                            else if (ValueInput == "1") 
                            {
-                              updateStatusDevice.CommandText = @"
-                                 UPDATE registrations SET status=false WHERE guid=@guidInput;
-                                 UPDATE registrations SET status=false WHERE guid=@guidOutput;
+                              updateRegistration.CommandText = @"
+                                 UPDATE registrations SET status=false, updated_at=@timestamp WHERE guid=@guidInput;
+                                 UPDATE registrations SET status=false, updated_at=@timestamp WHERE guid=@guidOutput;
                               ";
                            }
 
-                           updateStatusDevice.Parameters.AddWithValue("@guidInput", InputGuid);
-                           updateStatusDevice.Parameters.AddWithValue("@guidOutput", OutputGuid);
+                           updateRegistration.Parameters.AddWithValue("@guidInput", InputGuid);
+                           updateRegistration.Parameters.AddWithValue("@guidOutput", OutputGuid);
+                           updateRegistration.Parameters.AddWithValue("@timestamp", TimeStamp);
                            
-                           updateStatusDevice.ExecuteNonQuery();
+                           updateRegistration.ExecuteNonQuery();
                         }
 
                         using (var insertCmd = connectionDB.CreateCommand()) 
