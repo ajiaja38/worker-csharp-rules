@@ -136,7 +136,8 @@ namespace worker_smarthome_cloud_server
 
                   using (var reader2 = selectRegistrationCmd.ExecuteReader())
                   {
-                     while (reader2.Read()) {
+                     while (reader2.Read())
+                     {
                         DeviceName = reader2.GetString(5);
                      }
                   }
