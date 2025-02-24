@@ -54,9 +54,12 @@ namespace worker_smarthome_cloud_server
 
       private void InitRabbitMQ()
       {
-
-         var factory = new ConnectionFactory {
-            HostName = RMQHost, VirtualHost = RMQVHost, UserName = RMQUsername, Password = RMQPassword
+         var factory = new ConnectionFactory
+         {
+            HostName = RMQHost,
+            VirtualHost = RMQVHost,
+            UserName = RMQUsername,
+            Password = RMQPassword
          };
 
          // create connection
@@ -70,7 +73,6 @@ namespace worker_smarthome_cloud_server
 
       protected override Task ExecuteAsync(CancellationToken stoppingToken)
       {
-
          stoppingToken.ThrowIfCancellationRequested();
 
          var consumer = new EventingBasicConsumer(_channel);
@@ -97,7 +99,8 @@ namespace worker_smarthome_cloud_server
          var connectionDB = new SqliteConnection(connectionStringBuilder.ConnectionString);
 
          string[] dataParsing = content.Split('#');
-         foreach(var datas in dataParsing) {
+         foreach(var datas in dataParsing)
+         {
             InputGuid = dataParsing[0];
             ValueInput = dataParsing[1];
 
