@@ -48,7 +48,7 @@ namespace worker_smarthome_cloud_server
 
       public ConsumeRabbitMQHostedService(ILoggerFactory loggerFactory)
       {
-         this._logger = loggerFactory.CreateLogger < ConsumeRabbitMQHostedService > ();
+         _logger = loggerFactory.CreateLogger < ConsumeRabbitMQHostedService > ();
          InitRabbitMQ();
       }
 
@@ -96,6 +96,7 @@ namespace worker_smarthome_cloud_server
       {
          var connectionStringBuilder = new SqliteConnectionStringBuilder();
          connectionStringBuilder.DataSource = DBPath;
+         
          var connectionDB = new SqliteConnection(connectionStringBuilder.ConnectionString);
 
          string[] dataParsing = content.Split('#');
@@ -103,7 +104,6 @@ namespace worker_smarthome_cloud_server
          {
             InputGuid = dataParsing[0];
             ValueInput = dataParsing[1];
-
          }
          
          TimeZoneInfo asia = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
@@ -209,7 +209,7 @@ namespace worker_smarthome_cloud_server
 
                         transaction.Commit();
                         _logger.LogInformation($"Success inserting data to DB");
-                     } 
+                     }
                      catch (Exception ex) 
                      {
                         transaction.Rollback();
@@ -223,7 +223,6 @@ namespace worker_smarthome_cloud_server
                      basicProperties: null,
                      body: Encoding.UTF8.GetBytes(MessageSend)
                   );
-
                }
             }
          connectionDB.Close();
