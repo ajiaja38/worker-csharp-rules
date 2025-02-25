@@ -114,7 +114,7 @@ namespace worker_smarthome_cloud_server
 
          connectionDB.Open();
             var selectCmd = connectionDB.CreateCommand();
-            selectCmd.CommandText = "SELECT * FROM rule_devices  WHERE input_guid=@Guidinput AND input_value=@Valueinput";
+            selectCmd.CommandText = "SELECT * FROM rule_devices WHERE input_guid=@Guidinput AND input_value=@Valueinput";
             selectCmd.Parameters.AddWithValue("@Guidinput", InputGuid);
             selectCmd.Parameters.AddWithValue("@Valueinput", ValueInput);
             using(var reader = selectCmd.ExecuteReader())
@@ -124,10 +124,10 @@ namespace worker_smarthome_cloud_server
                   
                   // for (int i = 0; i < reader.FieldCount; i++)
                   // {
-                  //       Console.WriteLine($"Column {i}: {reader.GetValue(i)}");
+                  //    Console.WriteLine($"Column {i}: {reader.GetValue(i)}");
                   // }
                   
-                  OutputGuid = reader.GetString(2);
+                  OutputGuid = reader.GetString(3);
                   ValueOutput = reader.GetString(4);
 
                   MessageSend = OutputGuid + "#" + ValueOutput;
@@ -149,6 +149,20 @@ namespace worker_smarthome_cloud_server
                   {
                      try 
                      {
+                        using (var checkGuidCmd = connectionDB.CreateCommand())
+                        {
+                           checkGuidCmd.CommandText = "SELECT COUNT(*) FROM registrations WHERE guid = @guidOutput";
+                           checkGuidCmd.Parameters.AddWithValue("@guidOutput", OutputGuid);
+                           var count = Convert.ToInt32(checkGuidCmd.ExecuteScalar());
+
+                           if (count == 0)
+                           {
+                              _logger.LogError($"Foreign key violation: guidOutput {OutputGuid} not found in registrations");
+                              transaction.Rollback();
+                              return;
+                           }
+                        }
+
                         using (var updateRegistration = connectionDB.CreateCommand()) 
                         {
                            updateRegistration.Transaction = transaction;
@@ -194,7 +208,6 @@ namespace worker_smarthome_cloud_server
                         }
 
                         transaction.Commit();
-
                         _logger.LogInformation($"Success inserting data to DB");
                      } 
                      catch (Exception ex) 
